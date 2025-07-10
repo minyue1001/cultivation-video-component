@@ -3,97 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修練遊戲 - 影片覆蓋層</title>
+    <title>修練遊戲 - 影片元件</title>
     
     <!-- Twitch Extensions SDK -->
     <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
     
-    <!-- 樣式文件 -->
-    <link rel="stylesheet" href="video_component.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: transparent;
+            color: #efeff1;
+            overflow: hidden;
+            user-select: none;
+            width: 400px;
+            max-width: 400px;
+        }
+
+        /* 主容器 */
+        .game-panel {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .game-panel.minimized {
+            height: 40px;
+            overflow: hidden;
+        }
+
+        /* 頭部 */
+        .panel-header {
+            background: rgba(145, 70, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .panel-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .minimize-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 內容區域 */
+        .panel-content {
+            padding: 12px;
+        }
+
+        /* 玩家狀態區域 */
+        .player-section {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-info {
+            text-align: center;
+        }
+
+        .player-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 4px;
+        }
+
+        .player-realm {
+            font-size: 0.85rem;
+            color: #b9a3e3;
+            margin-bottom: 8px;
+        }
+
+        .exp-bar {
+            position: relative;
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .exp-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .exp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        /* 排行榜區域 */
+        .leaderboard-section {
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-rank {
+            font-weight: 700;
+            color: #ffd700;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            margin-left: 8px;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            color: #efeff1;
+        }
+
+        .leaderboard-level {
+            font-size: 0.7rem;
+            color: #b9a3e3;
+        }
+
+        .leaderboard-exp {
+            font-size: 0.7rem;
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        /* 狀態指示器 */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        .status-dot.disconnected {
+            background: #f44336;
+        }
+
+        .status-text {
+            color: #b9a3e3;
+        }
+
+        /* 修練結果彈窗 */
+        .cultivation-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            scale: 0.8;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .cultivation-result.show {
+            opacity: 1;
+            scale: 1;
+            pointer-events: auto;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .result-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 4px;
+        }
+
+        .result-details {
+            font-size: 0.85rem;
+            color: #efeff1;
+            white-space: pre-line;
+        }
+
+        /* 載入狀態 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            z-index: 999;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 8px;
+        }
+
+        .loading-text {
+            font-size: 0.8rem;
+            color: #b9a3e3;
+        }
+
+        /* 動畫 */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* 響應式 */
+        @media (max-width: 350px) {
+            body {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .game-panel {
+                max-width: 100%;
+            }
+            
+            .panel-content {
+                padding: 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- 主要覆蓋層容器 -->
-    <div class="video-overlay" id="videoOverlay">
-        <!-- 排行榜面板 -->
-        <div class="leaderboard-panel" id="leaderboardPanel">
-            <div class="panel-header">
-                <span class="panel-title">🏆 修練排行榜</span>
-                <button class="minimize-btn" id="minimizeLeaderboard">─</button>
+    <!-- 主要遊戲面板 -->
+    <div class="game-panel" id="gamePanel">
+        <!-- 面板頭部 -->
+        <div class="panel-header">
+            <div class="panel-title">
+                🎮 修練遊戲
             </div>
-            <div class="panel-content">
-                <div class="leaderboard-list" id="leaderboardList">
-                    <!-- 排行榜項目將由 JavaScript 動態生成 -->
-                </div>
-            </div>
+            <button class="minimize-btn" id="minimizeBtn" title="最小化/展開">
+                ─
+            </button>
         </div>
 
-        <!-- 玩家狀態面板 -->
-        <div class="player-status-panel" id="playerStatusPanel">
-            <div class="panel-header">
-                <span class="panel-title">⚡ 我的修練</span>
-                <button class="minimize-btn" id="minimizePlayer">─</button>
-            </div>
-            <div class="panel-content">
+        <!-- 面板內容 -->
+        <div class="panel-content" id="panelContent">
+            <!-- 玩家狀態區域 -->
+            <div class="player-section">
                 <div class="player-info">
                     <div class="player-name" id="playerName">載入中...</div>
                     <div class="player-realm" id="playerRealm">煉氣期 第1層</div>
                     <div class="exp-bar">
-                        <div class="exp-fill" id="expFill"></div>
+                        <div class="exp-fill" id="expFill" style="width: 0%"></div>
                         <div class="exp-text" id="expText">0 / 100</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 遊戲通知面板 -->
-        <div class="notifications-panel" id="notificationsPanel">
-            <div class="panel-header">
-                <span class="panel-title">📢 遊戲通知</span>
-                <button class="minimize-btn" id="minimizeNotifications">─</button>
-            </div>
-            <div class="panel-content">
-                <div class="notification-list" id="notificationList">
-                    <!-- 通知將由 JavaScript 動態生成 -->
+            <!-- 排行榜區域 -->
+            <div class="leaderboard-section">
+                <div class="section-title">
+                    🏆 排行榜 Top 5
                 </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- 排行榜項目將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 狀態指示器 -->
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="statusText">連接中...</span>
             </div>
         </div>
 
         <!-- 修練結果彈窗 -->
         <div class="cultivation-result" id="cultivationResult">
-            <div class="result-content">
-                <div class="result-icon" id="resultIcon">⚡</div>
-                <div class="result-text" id="resultText">修練成功！</div>
-                <div class="result-details" id="resultDetails">獲得 50 經驗</div>
-            </div>
+            <div class="result-icon" id="resultIcon">⚡</div>
+            <div class="result-text" id="resultText">修練成功！</div>
+            <div class="result-details" id="resultDetails">獲得 50 經驗</div>
         </div>
 
-        <!-- 系統狀態指示器 -->
-        <div class="system-status" id="systemStatus">
-            <div class="status-dot" id="statusDot"></div>
-            <span class="status-text" id="statusText">連接中...</span>
-        </div>
-
-        <!-- 控制按鈕 -->
-        <div class="control-buttons">
-            <button class="control-btn" id="refreshBtn" title="刷新數據">
-                🔄
-            </button>
-            <button class="control-btn" id="settingsBtn" title="設置">
-                ⚙️
-            </button>
-            <button class="control-btn" id="hideBtn" title="隱藏/顯示">
-                👁️
-            </button>
+        <!-- 載入覆蓋層 -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text">載入遊戲數據...</div>
         </div>
     </div>
 
-    <!-- 載入指示器 -->
-    <div class="loading-indicator" id="loadingIndicator">
-        <div class="spinner"></div>
-        <div class="loading-text">載入遊戲數據...</div>
-    </div>
+    <!-- JavaScript 邏輯 -->
+    <script>
+        class CultivationVideoComponent {
+            constructor() {
+                this.twitch = window.Twitch ? window.Twitch.ext : null;
+                this.auth = null;
+                this.context = null;
+                this.playerData = null;
+                this.leaderboardData = [];
+                this.isConnected = false;
+                this.isMinimized = false;
+                
+                // API 設定
+                this.apiBaseUrl = 'http://172.25.241.201:3000/api';
+                
+                // 更新間隔
+                this.updateInterval = null;
+                
+                this.init();
+            }
 
-    <!-- JavaScript 文件 -->
-    <script src="video_component.js"></script>
+            init() {
+                console.log('初始化修練遊戲影片元件...');
+                
+                if (this.twitch) {
+                    this.setupTwitchCallbacks();
+                } else {
+                    console.log('開發模式：未檢測到 Twitch Extensions SDK');
+                    this.initDevelopmentMode();
+                }
+                
+                this.setupEventListeners();
+                this.startUpdateCycle();
+            }
+
+            setupTwitchCallbacks() {
+                this.twitch.onAuthorized((auth) => {
+                    console.log('用戶已授權:', auth);
+                    this.auth = auth;
+                    this.loadPlayerData();
+                });
+
+                this.twitch.onContext((context, delta) => {
+                    this.context = context;
+                    this.handleContextChange(context);
+                });
+
+                this.twitch.onVisibilityChanged((isVisible) => {
+                    if (isVisible) {
+                        this.refreshData();
+                    }
+                });
+
+                this.twitch.listen('broadcast', (target, contentType, message) => {
+                    this.handleBroadcastMessage(message);
+                });
+            }
+
+            initDevelopmentMode() {
+                this.auth = {
+                    token: 'dev-token',
+                    userId: 'dev-user-123',
+                    channelId: 'dev-channel-456'
+                };
+                
+                setTimeout(() => {
+                    this.loadPlayerData();
+                }, 1000);
+            }
+
+            setupEventListeners() {
+                // 最小化按鈕
+                document.getElementById('minimizeBtn').addEventListener('click', () => {
+                    this.toggleMinimize();
+                });
+            }
+
+            async loadPlayerData() {
+                try {
+                    this.showLoading();
+                    const username = this.getUsernameFromAuth();
+                    
+                    if (!username) {
+                        console.log('無法獲取用戶名稱');
+                        this.setConnectionStatus(false);
+                        this.hideLoading();
+                        return;
+                    }
+
+                    const response = await this.apiRequest(`/players/${username}`);
+                    
+                    if (response.success) {
+                        this.playerData = response.data;
+                        this.updatePlayerUI();
+                        this.setConnectionStatus(true);
+                        this.loadLeaderboard();
+                    } else {
+                        console.error('載入玩家數據失敗:', response.message);
+                        this.setConnectionStatus(false);
+                    }
+                    
+                    this.hideLoading();
+                } catch (error) {
+                    console.error('載入玩家數據錯誤:', error);
+                    this.setConnectionStatus(false);
+                    this.hideLoading();
+                }
+            }
+
+            async loadLeaderboard() {
+                try {
+                    const response = await this.apiRequest('/leaderboard?limit=5');
+                    
+                    if (response.success) {
+                        this.leaderboardData = response.data;
+                        this.updateLeaderboardUI();
+                    } else {
+                        console.error('載入排行榜失敗:', response.message);
+                    }
+                } catch (error) {
+                    console.error('載入排行榜錯誤:', error);
+                }
+            }
+
+            updatePlayerUI() {
+                if (!this.playerData) return;
+
+                const playerName = document.getElementById('playerName');
+                const playerRealm = document.getElementById('playerRealm');
+                const expFill = document.getElementById('expFill');
+                const expText = document.getElementById('expText');
+
+                if (playerName) {
+                    playerName.textContent = this.playerData.username;
+                }
+
+                if (playerRealm) {
+                    playerRealm.textContent = `${this.playerData.realm} 第${this.playerData.level}層`;
+                }
+
+                if (expFill && expText) {
+                    const expProgress = (this.playerData.experience / this.playerData.expRequired) * 100;
+                    expFill.style.width = `${Math.min(expProgress, 100)}%`;
+                    expText.textContent = `${this.playerData.experience} / ${this.playerData.expRequired}`;
+                }
+            }
+
+            updateLeaderboardUI() {
+                const leaderboardList = document.getElementById('leaderboardList');
+                if (!leaderboardList) return;
+
+                leaderboardList.innerHTML = '';
+
+                if (this.leaderboardData.length === 0) {
+                    leaderboardList.innerHTML = '<div style="text-align: center; color: #666; font-size: 0.8rem; padding: 10px;">暫無排行榜數據</div>';
+                    return;
+                }
+
+                this.leaderboardData.forEach((player, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    item.innerHTML = `
+                        <div class="leaderboard-rank">${index + 1}</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${player.username}</div>
+                            <div class="leaderboard-level">${player.realm} ${player.level}層</div>
+                        </div>
+                        <div class="leaderboard-exp">${this.formatNumber(player.totalExperience)}</div>
+                    `;
+                    leaderboardList.appendChild(item);
+                });
+            }
+
+            showCultivationResult(result) {
+                const resultElement = document.getElementById('cultivationResult');
+                const resultIcon = document.getElementById('resultIcon');
+                const resultText = document.getElementById('resultText');
+                const resultDetails = document.getElementById('resultDetails');
+
+                if (result.success) {
+                    resultIcon.textContent = result.critical ? '💥' : '⚡';
+                    resultText.textContent = '修練成功！';
+                    resultDetails.textContent = `獲得 ${result.experience} 經驗`;
+                    
+                    if (result.levelUp) {
+                        resultDetails.textContent += `\n🎉 升級到 ${result.levelUp.realm} ${result.levelUp.level}層！`;
+                    }
+                } else {
+                    resultIcon.textContent = '💔';
+                    resultText.textContent = '修練失敗';
+                    resultDetails.textContent = result.message || '修練失敗，請重試';
+                }
+
+                resultElement.classList.add('show');
+                
+                setTimeout(() => {
+                    resultElement.classList.remove('show');
+                }, 3000);
+            }
+
+            handleBroadcastMessage(message) {
+                try {
+                    const data = JSON.parse(message);
+                    
+                    switch (data.type) {
+                        case 'cultivation_result':
+                            this.showCultivationResult(data.payload);
+                            break;
+                        case 'player_update':
+                            this.playerData = data.payload;
+                            this.updatePlayerUI();
+                            break;
+                        case 'leaderboard_update':
+                            this.leaderboardData = data.payload;
+                            this.updateLeaderboardUI();
+                            break;
+                        default:
+                            console.log('未知的廣播訊息類型:', data.type);
+                    }
+                } catch (error) {
+                    console.error('處理廣播訊息錯誤:', error);
+                }
+            }
+
+            toggleMinimize() {
+                const gamePanel = document.getElementById('gamePanel');
+                const minimizeBtn = document.getElementById('minimizeBtn');
+                
+                this.isMinimized = !this.isMinimized;
+                
+                if (this.isMinimized) {
+                    gamePanel.classList.add('minimized');
+                    minimizeBtn.textContent = '+';
+                } else {
+                    gamePanel.classList.remove('minimized');
+                    minimizeBtn.textContent = '─';
+                }
+            }
+
+            setConnectionStatus(connected) {
+                this.isConnected = connected;
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                
+                if (connected) {
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = '已連接';
+                } else {
+                    statusDot.className = 'status-dot disconnected';
+                    statusText.textContent = '連接失敗';
+                }
+            }
+
+            showLoading() {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'flex';
+                }
+            }
+
+            hideLoading() {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+
+            refreshData() {
+                console.log('刷新數據...');
+                this.loadPlayerData();
+            }
+
+            startUpdateCycle() {
+                // 每10秒更新一次數據
+                this.updateInterval = setInterval(() => {
+                    if (this.isConnected && !this.isMinimized) {
+                        this.refreshData();
+                    }
+                }, 10000);
+            }
+
+            stopUpdateCycle() {
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                    this.updateInterval = null;
+                }
+            }
+
+            async apiRequest(endpoint, options = {}) {
+                const url = `${this.apiBaseUrl}${endpoint}`;
+                const defaultOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.auth ? this.auth.token : ''}`
+                    },
+                    timeout: 8000
+                };
+
+                try {
+                    const response = await fetch(url, { ...defaultOptions, ...options });
+                    return await response.json();
+                } catch (error) {
+                    console.error('API 請求失敗:', error);
+                    return { success: false, message: error.message };
+                }
+            }
+
+            getUsernameFromAuth() {
+                if (this.auth && this.auth.userId) {
+                    return this.auth.userId;
+                }
+                return 'feisheng123'; // 開發模式默認用戶
+            }
+
+            formatNumber(num) {
+                if (typeof num !== 'number') return '0';
+                
+                if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M';
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'K';
+                }
+                return num.toString();
+            }
+
+            // 清理資源
+            destroy() {
+                this.stopUpdateCycle();
+                
+                if (this.twitch) {
+                    this.twitch.unlisten('broadcast', () => {});
+                }
+                
+                console.log('影片元件已銷毀');
+            }
+        }
+
+        // 當頁面載入完成時初始化元件
+        document.addEventListener('DOMContentLoaded', () => {
+            window.cultivationVideoComponent = new CultivationVideoComponent();
+        });
+
+        // 當頁面即將關閉時清理資源
+        window.addEventListener('beforeunload', () => {
+            if (window.cultivationVideoComponent) {
+                window.cultivationVideoComponent.destroy();
+            }
+        });
+    </script>
 </body>
 </html>
