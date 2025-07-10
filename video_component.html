@@ -159,8 +159,8 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         }
 
-        /* 排行榜區域 */
-        .leaderboard-section {
+        /* 遊戲數值區域 */
+        .stats-section {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -179,64 +179,60 @@
             flex-shrink: 0;
         }
 
-        .leaderboard-list {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(8px, 1vh, 15px);
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(clamp(120px, 20vw, 200px), 1fr));
+            gap: clamp(10px, 2vh, 20px);
             flex: 1;
             overflow-y: auto;
         }
 
-        .leaderboard-item {
+        .stat-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            padding: clamp(12px, 2vh, 20px) clamp(15px, 3vw, 25px);
+            justify-content: center;
+            padding: clamp(12px, 2vh, 20px);
             background: rgba(255, 255, 255, 0.08);
             border-radius: clamp(8px, 1vh, 15px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            font-size: clamp(1rem, 2.5vw, 2rem);
             transition: all 0.2s ease;
-            min-height: clamp(50px, 6vh, 80px);
+            min-height: clamp(60px, 8vh, 100px);
+            text-align: center;
         }
 
         .leaderboard-item:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .leaderboard-rank {
+        .stat-label {
+            font-size: clamp(0.7rem, 1.5vw, 1.1rem);
+            color: #b9a3e3;
+            margin-bottom: clamp(4px, 0.5vh, 8px);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .stat-value {
+            font-size: clamp(1rem, 2.5vw, 1.8rem);
             font-weight: 700;
             color: #ffd700;
-            min-width: clamp(30px, 5vw, 50px);
-            text-align: center;
-            font-size: clamp(1.2rem, 3vw, 2.2rem);
-        }
-
-        .leaderboard-info {
-            flex: 1;
-            margin-left: clamp(8px, 1.5vw, 15px);
-            min-width: 0;
-        }
-
-        .leaderboard-name {
-            font-weight: 600;
-            color: #efeff1;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
         }
 
-        .leaderboard-level {
-            font-size: clamp(0.8rem, 2vw, 1.5rem);
-            color: #b9a3e3;
-            white-space: nowrap;
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
         }
 
-        .leaderboard-exp {
-            font-size: clamp(0.8rem, 2vw, 1.5rem);
-            color: #4caf50;
-            font-weight: 600;
-            white-space: nowrap;
-        }
+        /* 不同類型數值的顏色 */
+        .stat-item:nth-child(1) .stat-value { color: #4caf50; }  /* 修練次數 - 綠色 */
+        .stat-item:nth-child(2) .stat-value { color: #ffd700; }  /* 總經驗 - 金色 */
+        .stat-item:nth-child(3) .stat-value { color: #ff6b35; }  /* 突破次數 - 橘色 */
+        .stat-item:nth-child(4) .stat-value { color: #00bcd4; }  /* 效率 - 青色 */
+        .stat-item:nth-child(5) .stat-value { color: #9c27b0; }  /* 時間 - 紫色 */
+        .stat-item:nth-child(6) .stat-value { color: #e91e63; }  /* 境界 - 粉色 */
 
         /* 狀態指示器 */
         .status-indicator {
@@ -415,13 +411,36 @@
                 </div>
             </div>
 
-            <!-- 排行榜區域 -->
-            <div class="leaderboard-section">
+            <!-- 遊戲數值區域 -->
+            <div class="stats-section">
                 <div class="section-title">
-                    🏆 排行榜 Top 5
+                    📊 遊戲數值
                 </div>
-                <div class="leaderboard-list" id="leaderboardList">
-                    <!-- 排行榜項目將由 JavaScript 動態生成 -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item">
+                        <div class="stat-label">修練次數</div>
+                        <div class="stat-value" id="cultivationCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">總經驗值</div>
+                        <div class="stat-value" id="totalExperience">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">突破次數</div>
+                        <div class="stat-value" id="breakthroughCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">修練效率</div>
+                        <div class="stat-value" id="efficiency">100%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">在線時間</div>
+                        <div class="stat-value" id="onlineTime">0分鐘</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">當前境界</div>
+                        <div class="stat-value" id="currentRealm">煉氣期</div>
+                    </div>
                 </div>
             </div>
 
@@ -454,7 +473,7 @@
                 this.auth = null;
                 this.context = null;
                 this.playerData = null;
-                this.leaderboardData = [];
+                this.playerStats = null;
                 this.isConnected = false;
                 this.isMinimized = false;
                 
@@ -541,7 +560,7 @@
                         this.playerData = response.data;
                         this.updatePlayerUI();
                         this.setConnectionStatus(true);
-                        this.loadLeaderboard();
+                        this.loadPlayerStats();
                     } else {
                         console.error('載入玩家數據失敗:', response.message);
                         this.setConnectionStatus(false);
@@ -555,18 +574,21 @@
                 }
             }
 
-            async loadLeaderboard() {
+            async loadPlayerStats() {
                 try {
-                    const response = await this.apiRequest('/leaderboard?limit=5');
+                    const username = this.getUsernameFromAuth();
+                    const response = await this.apiRequest(`/players/${username}/stats`);
                     
                     if (response.success) {
-                        this.leaderboardData = response.data;
-                        this.updateLeaderboardUI();
+                        this.playerStats = response.data;
+                        this.updateStatsUI();
                     } else {
-                        console.error('載入排行榜失敗:', response.message);
+                        console.error('載入遊戲數值失敗:', response.message);
+                        this.setDefaultStats();
                     }
                 } catch (error) {
-                    console.error('載入排行榜錯誤:', error);
+                    console.error('載入遊戲數值錯誤:', error);
+                    this.setDefaultStats();
                 }
             }
 
@@ -593,30 +615,39 @@
                 }
             }
 
-            updateLeaderboardUI() {
-                const leaderboardList = document.getElementById('leaderboardList');
-                if (!leaderboardList) return;
-
-                leaderboardList.innerHTML = '';
-
-                if (this.leaderboardData.length === 0) {
-                    leaderboardList.innerHTML = '<div style="text-align: center; color: #666; font-size: 0.8rem; padding: 10px;">暫無排行榜數據</div>';
-                    return;
+            updateStatsUI() {
+                const stats = this.playerStats || this.getDefaultStats();
+                
+                // 更新各個數值
+                this.updateStatValue('cultivationCount', stats.cultivationCount || 0);
+                this.updateStatValue('totalExperience', this.formatNumber(stats.totalExperience || 0));
+                this.updateStatValue('breakthroughCount', stats.breakthroughCount || 0);
+                this.updateStatValue('efficiency', `${stats.efficiency || 100}%`);
+                this.updateStatValue('onlineTime', this.formatTime(stats.onlineTime || 0));
+                this.updateStatValue('currentRealm', stats.currentRealm || '煉氣期');
+            }
+            
+            updateStatValue(id, value) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
                 }
-
-                this.leaderboardData.forEach((player, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
-                    item.innerHTML = `
-                        <div class="leaderboard-rank">${index + 1}</div>
-                        <div class="leaderboard-info">
-                            <div class="leaderboard-name">${player.username}</div>
-                            <div class="leaderboard-level">${player.realm} ${player.level}層</div>
-                        </div>
-                        <div class="leaderboard-exp">${this.formatNumber(player.totalExperience)}</div>
-                    `;
-                    leaderboardList.appendChild(item);
-                });
+            }
+            
+            setDefaultStats() {
+                this.playerStats = this.getDefaultStats();
+                this.updateStatsUI();
+            }
+            
+            getDefaultStats() {
+                return {
+                    cultivationCount: 0,
+                    totalExperience: 0,
+                    breakthroughCount: 0,
+                    efficiency: 100,
+                    onlineTime: 0,
+                    currentRealm: '煉氣期'
+                };
             }
 
             showCultivationResult(result) {
@@ -658,9 +689,9 @@
                             this.playerData = data.payload;
                             this.updatePlayerUI();
                             break;
-                        case 'leaderboard_update':
-                            this.leaderboardData = data.payload;
-                            this.updateLeaderboardUI();
+                        case 'stats_update':
+                            this.playerStats = data.payload;
+                            this.updateStatsUI();
                             break;
                         default:
                             console.log('未知的廣播訊息類型:', data.type);
@@ -770,6 +801,17 @@
                     return (num / 1000).toFixed(1) + 'K';
                 }
                 return num.toString();
+            }
+            
+            formatTime(minutes) {
+                if (typeof minutes !== 'number') return '0分鐘';
+                
+                if (minutes >= 60) {
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    return `${hours}小時${mins}分鐘`;
+                }
+                return `${minutes}分鐘`;
             }
 
             // 清理資源
