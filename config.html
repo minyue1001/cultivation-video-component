@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修練遊戲影片元件 - 配置</title>
+    
+    <!-- Twitch Extensions SDK -->
+    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .config-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .config-header {
+            background: linear-gradient(135deg, #9146ff, #772ce8);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .config-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .config-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .config-content {
+            padding: 30px;
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+        }
+
+        .config-section h2 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .config-group {
+            margin-bottom: 20px;
+        }
+
+        .config-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .config-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #9146ff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #9146ff;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #9146ff;
+            cursor: pointer;
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #9146ff;
+            cursor: pointer;
+            border: none;
+        }
+
+        .range-value {
+            text-align: center;
+            font-weight: 600;
+            color: #9146ff;
+            font-size: 1.1rem;
+        }
+
+        .color-picker {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #9146ff, #772ce8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(145, 70, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .preview-demo {
+            background: #000;
+            border-radius: 6px;
+            padding: 15px;
+            position: relative;
+            min-height: 200px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50%" x="50%" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="%23666">影片預覽區域</text></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .demo-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-top: 2px solid #9146ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .config-container {
+                margin: 10px;
+            }
+            
+            .config-content {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <div class="config-header">
+            <h1>🎮 修練遊戲影片元件</h1>
+            <p>配置你的直播覆蓋層設定</p>
+        </div>
+
+        <div class="config-content">
+            <div class="loading" id="loadingState">
+                正在載入配置...
+            </div>
+
+            <div class="config-form" id="configForm" style="display: none;">
+                <!-- 顯示設定 -->
+                <div class="config-section">
+                    <h2>📺 顯示設定</h2>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>顯示排行榜</span>
+                            <div class="switch">
+                                <input type="checkbox" id="showLeaderboard" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <div class="config-description">
+                            在影片右上角顯示修練排行榜
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>顯示玩家狀態</span>
+                            <div class="switch">
+                                <input type="checkbox" id="showPlayerStatus" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <div class="config-description">
+                            在影片左上角顯示玩家修練狀態
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>顯示遊戲通知</span>
+                            <div class="switch">
+                                <input type="checkbox" id="showNotifications" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <div class="config-description">
+                            在影片左下角顯示遊戲通知和事件
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>顯示修練結果</span>
+                            <div class="switch">
+                                <input type="checkbox" id="showResults" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <div class="config-description">
+                            在影片中央顯示修練和突破結果
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 更新設定 -->
+                <div class="config-section">
+                    <h2>🔄 更新設定</h2>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>玩家數據更新間隔</span>
+                        </label>
+                        <div class="config-description">
+                            玩家修練狀態的更新頻率（秒）
+                        </div>
+                        <div class="slider-group">
+                            <input type="range" id="playerUpdateInterval" class="range-slider" min="3" max="30" value="5">
+                            <div class="range-value" id="playerUpdateValue">5 秒</div>
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>排行榜更新間隔</span>
+                        </label>
+                        <div class="config-description">
+                            排行榜數據的更新頻率（秒）
+                        </div>
+                        <div class="slider-group">
+                            <input type="range" id="leaderboardUpdateInterval" class="range-slider" min="5" max="60" value="10">
+                            <div class="range-value" id="leaderboardUpdateValue">10 秒</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API 設定 -->
+                <div class="config-section">
+                    <h2>🔗 API 設定</h2>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>API 伺服器地址</span>
+                        </label>
+                        <div class="config-description">
+                            修練遊戲後端 API 的地址
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="apiBaseUrl" class="input-field" placeholder="http://localhost:3000/api">
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>API 超時時間</span>
+                        </label>
+                        <div class="config-description">
+                            API 請求的超時時間（毫秒）
+                        </div>
+                        <div class="slider-group">
+                            <input type="range" id="apiTimeout" class="range-slider" min="5000" max="30000" value="10000" step="1000">
+                            <div class="range-value" id="apiTimeoutValue">10 秒</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 外觀設定 -->
+                <div class="config-section">
+                    <h2>🎨 外觀設定</h2>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>面板透明度</span>
+                        </label>
+                        <div class="config-description">
+                            調整覆蓋層面板的透明度
+                        </div>
+                        <div class="slider-group">
+                            <input type="range" id="panelOpacity" class="range-slider" min="0.3" max="1" value="0.8" step="0.1">
+                            <div class="range-value" id="panelOpacityValue">80%</div>
+                        </div>
+                    </div>
+
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span>主題色調</span>
+                        </label>
+                        <div class="config-description">
+                            選擇覆蓋層的主要色調
+                        </div>
+                        <div class="input-group">
+                            <input type="color" id="themeColor" class="color-picker" value="#9146ff">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 預覽區域 -->
+                <div class="config-section">
+                    <div class="preview-section">
+                        <h3>🔍 即時預覽</h3>
+                        <div class="preview-demo" id="previewDemo">
+                            <div class="demo-overlay">覆蓋層預覽</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 按鈕組 -->
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="resetBtn">重設預設值</button>
+                    <button class="btn btn-primary" id="saveBtn">儲存配置</button>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ConfigManager {
+            constructor() {
+                this.twitch = window.Twitch ? window.Twitch.ext : null;
+                this.config = this.getDefaultConfig();
+                this.isLoading = false;
+                
+                this.init();
+            }
+
+            init() {
+                console.log('初始化配置管理器...');
+                
+                if (this.twitch) {
+                    this.setupTwitchCallbacks();
+                } else {
+                    console.log('開發模式：未檢測到 Twitch Extensions SDK');
+                    this.initDevelopmentMode();
+                }
+                
+                this.setupEventListeners();
+            }
+
+            setupTwitchCallbacks() {
+                this.twitch.onAuthorized((auth) => {
+                    console.log('配置頁面已授權:', auth);
+                    this.loadConfiguration();
+                });
+
+                this.twitch.configuration.onChanged(() => {
+                    console.log('配置已變更');
+                    this.loadConfiguration();
+                });
+            }
+
+            initDevelopmentMode() {
+                setTimeout(() => {
+                    this.loadConfiguration();
+                }, 1000);
+            }
+
+            setupEventListeners() {
+                // 範圍滑桿事件
+                document.getElementById('playerUpdateInterval').addEventListener('input', (e) => {
+                    document.getElementById('playerUpdateValue').textContent = e.target.value + ' 秒';
+                });
+
+                document.getElementById('leaderboardUpdateInterval').addEventListener('input', (e) => {
+                    document.getElementById('leaderboardUpdateValue').textContent = e.target.value + ' 秒';
+                });
+
+                document.getElementById('apiTimeout').addEventListener('input', (e) => {
+                    document.getElementById('apiTimeoutValue').textContent = (e.target.value / 1000) + ' 秒';
+                });
+
+                document.getElementById('panelOpacity').addEventListener('input', (e) => {
+                    document.getElementById('panelOpacityValue').textContent = Math.round(e.target.value * 100) + '%';
+                });
+
+                // 按鈕事件
+                document.getElementById('saveBtn').addEventListener('click', () => {
+                    this.saveConfiguration();
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetConfiguration();
+                });
+
+                // 即時預覽更新
+                document.querySelectorAll('input, select').forEach(input => {
+                    input.addEventListener('change', () => {
+                        this.updatePreview();
+                    });
+                });
+            }
+
+            getDefaultConfig() {
+                return {
+                    showLeaderboard: true,
+                    showPlayerStatus: true,
+                    showNotifications: true,
+                    showResults: true,
+                    playerUpdateInterval: 5,
+                    leaderboardUpdateInterval: 10,
+                    apiBaseUrl: 'http://172.25.241.201:3000/api',
+                    apiTimeout: 10000,
+                    panelOpacity: 0.8,
+                    themeColor: '#9146ff'
+                };
+            }
+
+            loadConfiguration() {
+                console.log('載入配置...');
+                this.showLoading();
+
+                if (this.twitch && this.twitch.configuration) {
+                    const broadcasterConfig = this.twitch.configuration.broadcaster;
+                    if (broadcasterConfig && broadcasterConfig.content) {
+                        try {
+                            this.config = { ...this.config, ...JSON.parse(broadcasterConfig.content) };
+                        } catch (error) {
+                            console.error('解析配置失敗:', error);
+                        }
+                    }
+                }
+
+                this.populateForm();
+                this.updatePreview();
+                this.hideLoading();
+            }
+
+            populateForm() {
+                // 填入表單數據
+                document.getElementById('showLeaderboard').checked = this.config.showLeaderboard;
+                document.getElementById('showPlayerStatus').checked = this.config.showPlayerStatus;
+                document.getElementById('showNotifications').checked = this.config.showNotifications;
+                document.getElementById('showResults').checked = this.config.showResults;
+                
+                document.getElementById('playerUpdateInterval').value = this.config.playerUpdateInterval;
+                document.getElementById('playerUpdateValue').textContent = this.config.playerUpdateInterval + ' 秒';
+                
+                document.getElementById('leaderboardUpdateInterval').value = this.config.leaderboardUpdateInterval;
+                document.getElementById('leaderboardUpdateValue').textContent = this.config.leaderboardUpdateInterval + ' 秒';
+                
+                document.getElementById('apiBaseUrl').value = this.config.apiBaseUrl;
+                
+                document.getElementById('apiTimeout').value = this.config.apiTimeout;
+                document.getElementById('apiTimeoutValue').textContent = (this.config.apiTimeout / 1000) + ' 秒';
+                
+                document.getElementById('panelOpacity').value = this.config.panelOpacity;
+                document.getElementById('panelOpacityValue').textContent = Math.round(this.config.panelOpacity * 100) + '%';
+                
+                document.getElementById('themeColor').value = this.config.themeColor;
+            }
+
+            collectFormData() {
+                return {
+                    showLeaderboard: document.getElementById('showLeaderboard').checked,
+                    showPlayerStatus: document.getElementById('showPlayerStatus').checked,
+                    showNotifications: document.getElementById('showNotifications').checked,
+                    showResults: document.getElementById('showResults').checked,
+                    playerUpdateInterval: parseInt(document.getElementById('playerUpdateInterval').value),
+                    leaderboardUpdateInterval: parseInt(document.getElementById('leaderboardUpdateInterval').value),
+                    apiBaseUrl: document.getElementById('apiBaseUrl').value,
+                    apiTimeout: parseInt(document.getElementById('apiTimeout').value),
+                    panelOpacity: parseFloat(document.getElementById('panelOpacity').value),
+                    themeColor: document.getElementById('themeColor').value
+                };
+            }
+
+            saveConfiguration() {
+                if (this.isLoading) return;
+
+                this.isLoading = true;
+                this.config = this.collectFormData();
+
+                try {
+                    if (this.twitch && this.twitch.configuration) {
+                        this.twitch.configuration.set('broadcaster', '1', JSON.stringify(this.config));
+                        this.showStatus('配置已成功儲存！', 'success');
+                    } else {
+                        console.log('開發模式：儲存配置', this.config);
+                        this.showStatus('配置已儲存（開發模式）', 'success');
+                    }
+                } catch (error) {
+                    console.error('儲存配置失敗:', error);
+                    this.showStatus('儲存配置失敗，請重試', 'error');
+                }
+
+                this.isLoading = false;
+            }
+
+            resetConfiguration() {
+                if (confirm('確定要重設所有配置為預設值嗎？')) {
+                    this.config = this.getDefaultConfig();
+                    this.populateForm();
+                    this.updatePreview();
+                    this.showStatus('配置已重設為預設值', 'success');
+                }
+            }
+
+            updatePreview() {
+                const previewDemo = document.getElementById('previewDemo');
+                const opacity = document.getElementById('panelOpacity').value;
+                const themeColor = document.getElementById('themeColor').value;
+                
+                // 更新預覽樣式
+                previewDemo.style.setProperty('--panel-opacity', opacity);
+                previewDemo.style.setProperty('--theme-color', themeColor);
+                
+                // 根據配置顯示/隱藏預覽元素
+                const overlay = previewDemo.querySelector('.demo-overlay');
+                if (overlay) {
+                    overlay.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+                    overlay.style.color = this.config.showPlayerStatus ? '#fff' : '#666';
+                }
+            }
+
+            showStatus(message, type) {
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message ${type} show`;
+                
+                setTimeout(() => {
+                    statusMessage.classList.remove('show');
+                }, 3000);
+            }
+
+            showLoading() {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('configForm').style.display = 'none';
+            }
+
+            hideLoading() {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('configForm').style.display = 'block';
+            }
+        }
+
+        // 初始化配置管理器
+        document.addEventListener('DOMContentLoaded', () => {
+            new ConfigManager();
+        });
+    </script>
+</body>
+</html>

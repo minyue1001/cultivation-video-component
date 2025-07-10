@@ -1,0 +1,48 @@
+{
+  "manifest_version": 1,
+  "name": "修練遊戲 - 影片元件",
+  "description": "在直播影片上顯示修練排行榜和玩家狀態的覆蓋層",
+  "version": "1.0.0",
+  "author_name": "修練遊戲開發團隊",
+  "author_email": "support@cultivation-game.com",
+  "support_email": "support@cultivation-game.com",
+  "icon_url": "https://your-domain.com/assets/icon.png",
+  "icon_urls": {
+    "24x24": "https://your-domain.com/assets/icon-24.png",
+    "100x100": "https://your-domain.com/assets/icon-100.png"
+  },
+  "screenshots": [
+    {
+      "image": "https://your-domain.com/assets/video-component-screenshot.png",
+      "description": "影片覆蓋層顯示修練排行榜"
+    }
+  ],
+  "summary": "在直播影片上顯示即時修練排行榜、玩家狀態和遊戲通知",
+  "tags": ["Game", "Overlay", "Video", "Cultivation", "Leaderboard"],
+  "vendor_code": "cultivation-video-component",
+  "sku": "cultivation-video-overlay",
+  "can_install_for": ["broadcaster", "viewer"],
+  "required_broadcaster_abilities": [],
+  "config_service": "http://localhost:8080/config",
+  "views": {
+    "video_overlay": {
+      "viewer_url": "http://localhost:8080/video_component.html",
+      "can_link_external_content": true
+    },
+    "config": {
+      "viewer_url": "http://localhost:8080/config.html",
+      "can_link_external_content": true
+    }
+  },
+  "allowlisted_config_urls": [
+    "http://localhost:8080/",
+    "https://172.25.241.201:3000/"
+  ],
+  "request_identity_link": false,
+  "bits_enabled": false,
+  "mobile_friendly": true,
+  "testing": {
+    "base_uri": "https://localhost:8080"
+  },
+  "state": "Testing"
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修練遊戲 - 影片覆蓋層</title>
+    
+    <!-- Twitch Extensions SDK -->
+    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+    
+    <!-- 樣式文件 -->
+    <link rel="stylesheet" href="video_component.css">
+</head>
+<body>
+    <!-- 主要覆蓋層容器 -->
+    <div class="video-overlay" id="videoOverlay">
+        <!-- 排行榜面板 -->
+        <div class="leaderboard-panel" id="leaderboardPanel">
+            <div class="panel-header">
+                <span class="panel-title">🏆 修練排行榜</span>
+                <button class="minimize-btn" id="minimizeLeaderboard">─</button>
+            </div>
+            <div class="panel-content">
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- 排行榜項目將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 玩家狀態面板 -->
+        <div class="player-status-panel" id="playerStatusPanel">
+            <div class="panel-header">
+                <span class="panel-title">⚡ 我的修練</span>
+                <button class="minimize-btn" id="minimizePlayer">─</button>
+            </div>
+            <div class="panel-content">
+                <div class="player-info">
+                    <div class="player-name" id="playerName">載入中...</div>
+                    <div class="player-realm" id="playerRealm">煉氣期 第1層</div>
+                    <div class="exp-bar">
+                        <div class="exp-fill" id="expFill"></div>
+                        <div class="exp-text" id="expText">0 / 100</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遊戲通知面板 -->
+        <div class="notifications-panel" id="notificationsPanel">
+            <div class="panel-header">
+                <span class="panel-title">📢 遊戲通知</span>
+                <button class="minimize-btn" id="minimizeNotifications">─</button>
+            </div>
+            <div class="panel-content">
+                <div class="notification-list" id="notificationList">
+                    <!-- 通知將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 修練結果彈窗 -->
+        <div class="cultivation-result" id="cultivationResult">
+            <div class="result-content">
+                <div class="result-icon" id="resultIcon">⚡</div>
+                <div class="result-text" id="resultText">修練成功！</div>
+                <div class="result-details" id="resultDetails">獲得 50 經驗</div>
+            </div>
+        </div>
+
+        <!-- 系統狀態指示器 -->
+        <div class="system-status" id="systemStatus">
+            <div class="status-dot" id="statusDot"></div>
+            <span class="status-text" id="statusText">連接中...</span>
+        </div>
+
+        <!-- 控制按鈕 -->
+        <div class="control-buttons">
+            <button class="control-btn" id="refreshBtn" title="刷新數據">
+                🔄
+            </button>
+            <button class="control-btn" id="settingsBtn" title="設置">
+                ⚙️
+            </button>
+            <button class="control-btn" id="hideBtn" title="隱藏/顯示">
+                👁️
+            </button>
+        </div>
+    </div>
+
+    <!-- 載入指示器 -->
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="spinner"></div>
+        <div class="loading-text">載入遊戲數據...</div>
+    </div>
+
+    <!-- JavaScript 文件 -->
+    <script src="video_component.js"></script>
+</body>
+</html>

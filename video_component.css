@@ -1,0 +1,645 @@
+/* 基礎樣式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Noto Sans TC', sans-serif;
+    background: transparent;
+    color: #efeff1;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* 主要影片覆蓋層 */
+.video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+
+.video-overlay.hidden {
+    opacity: 0.1;
+}
+
+.video-overlay * {
+    pointer-events: auto;
+}
+
+/* 面板共用樣式 */
+.panel-header {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 8px 8px 0 0;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: move;
+}
+
+.panel-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.minimize-btn {
+    background: none;
+    border: none;
+    color: #efeff1;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.minimize-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd700;
+}
+
+.panel-content {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    border-radius: 0 0 8px 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 排行榜面板 */
+.leaderboard-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 280px;
+    z-index: 1000;
+    animation: slideInFromRight 0.5s ease-out;
+}
+
+.leaderboard-panel.minimized .panel-content {
+    display: none;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+.leaderboard-item .rank {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffd700;
+    min-width: 30px;
+    text-align: center;
+}
+
+.leaderboard-item .player-info {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.leaderboard-item .name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #efeff1;
+    margin-bottom: 2px;
+}
+
+.leaderboard-item .realm {
+    font-size: 0.8rem;
+    color: #b9a3e3;
+}
+
+.leaderboard-item .exp {
+    font-size: 0.8rem;
+    color: #4caf50;
+    font-weight: 600;
+}
+
+/* 玩家狀態面板 */
+.player-status-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 300px;
+    z-index: 1000;
+    animation: slideInFromLeft 0.5s ease-out;
+}
+
+.player-status-panel.minimized .panel-content {
+    display: none;
+}
+
+.player-info {
+    text-align: center;
+}
+
+.player-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffd700;
+    margin-bottom: 4px;
+}
+
+.player-realm {
+    font-size: 0.9rem;
+    color: #b9a3e3;
+    margin-bottom: 12px;
+}
+
+.exp-bar {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.exp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.exp-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+.exp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* 通知面板 */
+.notifications-panel {
+    position: absolute;
+    bottom: 80px;
+    left: 20px;
+    width: 320px;
+    z-index: 1000;
+    animation: slideInFromBottom 0.5s ease-out;
+}
+
+.notifications-panel.minimized .panel-content {
+    display: none;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 4px solid #9146ff;
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.notification-item.success {
+    border-left-color: #4caf50;
+}
+
+.notification-item.error {
+    border-left-color: #f44336;
+}
+
+.notification-item.warning {
+    border-left-color: #ff9800;
+}
+
+.notification-item.info {
+    border-left-color: #2196f3;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #efeff1;
+    margin-bottom: 2px;
+}
+
+.notification-message {
+    font-size: 0.8rem;
+    color: #b9a3e3;
+    line-height: 1.3;
+    margin-bottom: 4px;
+}
+
+.notification-time {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+/* 修練結果彈窗 */
+.cultivation-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    z-index: 2000;
+    opacity: 0;
+    scale: 0.8;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.cultivation-result.show {
+    opacity: 1;
+    scale: 1;
+    pointer-events: auto;
+}
+
+.result-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.result-icon {
+    font-size: 3rem;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.result-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.result-details {
+    font-size: 1rem;
+    color: #efeff1;
+    white-space: pre-line;
+}
+
+/* 系統狀態指示器 */
+.system-status {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+    background: #4caf50;
+}
+
+.status-dot.disconnected {
+    background: #f44336;
+}
+
+.status-text {
+    font-size: 0.8rem;
+    color: #efeff1;
+}
+
+/* 控制按鈕 */
+.control-buttons {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+    animation: slideInFromBottom 0.5s ease-out;
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    color: #efeff1;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd700;
+    transform: scale(1.1);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+/* 載入指示器 */
+.loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 12px;
+    z-index: 3000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #ffd700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-size: 0.9rem;
+    color: #efeff1;
+}
+
+/* 無數據顯示 */
+.no-data {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    padding: 20px;
+}
+
+/* 動畫效果 */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    .leaderboard-panel,
+    .player-status-panel,
+    .notifications-panel {
+        width: 250px;
+    }
+    
+    .panel-content {
+        padding: 8px;
+    }
+    
+    .control-buttons {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .control-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .leaderboard-panel {
+        top: 10px;
+        right: 10px;
+        width: 200px;
+    }
+    
+    .player-status-panel {
+        top: 10px;
+        left: 10px;
+        width: 200px;
+    }
+    
+    .notifications-panel {
+        bottom: 60px;
+        left: 10px;
+        width: 200px;
+    }
+    
+    .panel-title {
+        font-size: 0.8rem;
+    }
+    
+    .leaderboard-item,
+    .notification-item {
+        padding: 6px;
+    }
+    
+    .cultivation-result {
+        padding: 20px;
+        margin: 20px;
+    }
+    
+    .result-icon {
+        font-size: 2rem;
+    }
+    
+    .result-text {
+        font-size: 1.1rem;
+    }
+}
+
+/* 可拖拽面板 */
+.panel-header {
+    cursor: move;
+}
+
+.panel-header:active {
+    cursor: grabbing;
+}
+
+/* 明亮主題支援 */
+body.light-theme {
+    color: #333;
+}
+
+body.light-theme .panel-header,
+body.light-theme .panel-content {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+body.light-theme .panel-title {
+    color: #9146ff;
+}
+
+body.light-theme .leaderboard-item,
+body.light-theme .notification-item {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+body.light-theme .system-status,
+body.light-theme .control-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+body.light-theme .cultivation-result {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+}
+
+body.light-theme .loading-indicator {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+}
