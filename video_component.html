@@ -479,6 +479,7 @@
                 
                 // API 設定
                 this.apiBaseUrl = 'http://172.25.241.201:3000/api';
+                this.useDatabase = true; // 是否使用數據庫
                 
                 // 更新間隔
                 this.updateInterval = null;
@@ -498,6 +499,7 @@
                 
                 this.setupEventListeners();
                 this.startUpdateCycle();
+                this.startDatabaseSync();
             }
 
             setupTwitchCallbacks() {
@@ -524,15 +526,170 @@
             }
 
             initDevelopmentMode() {
+                // 生成基於瀏覽器的唯一用戶ID
+                const userId = this.generateUniqueUserId();
+                
                 this.auth = {
                     token: 'dev-token',
-                    userId: 'dev-user-123',
+                    userId: userId,
                     channelId: 'dev-channel-456'
                 };
                 
+                // 設定個性化數據
                 setTimeout(() => {
-                    this.loadPlayerData();
+                    this.setPersonalizedData(userId);
                 }, 1000);
+            }
+            
+            generateUniqueUserId() {
+                // 檢查是否已有儲存的用戶ID
+                let userId = localStorage.getItem('cultivation_user_id');
+                
+                if (!userId) {
+                    // 生成新的唯一ID
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('cultivation_user_id', userId);
+                }
+                
+                return userId;
+            }
+            
+            setPersonalizedData(userId) {
+                // 基於用戶ID生成個性化數據
+                const userData = this.generateUserData(userId);
+                
+                this.playerData = userData.playerData;
+                this.playerStats = userData.playerStats;
+                
+                // 儲存到本地存儲
+                this.saveUserData();
+                
+                this.updatePlayerUI();
+                this.updateStatsUI();
+                this.setConnectionStatus(true);
+                this.hideLoading();
+                
+                // 添加實時數據更新模擬
+                this.startMockDataUpdates();
+            }
+            
+            generateUserData(userId) {
+                // 使用用戶ID作為種子生成隨機數
+                const seed = this.hashCode(userId);
+                const random = this.seededRandom(seed);
+                
+                // 生成個性化用戶名
+                const usernames = [
+                    '飛升道友', '修真者', '煉丹師', '劍仙', '道長',
+                    '仙友', '丹師', '劍客', '道士', '修士',
+                    '天才', '奇才', '神童', '高手', '大師'
+                ];
+                const username = usernames[Math.floor(random() * usernames.length)] + Math.floor(random() * 9999);
+                
+                // 生成個性化境界
+                const realms = ['煉氣期', '築基期', '金丹期', '元嬰期', '化神期'];
+                const realmIndex = Math.floor(random() * realms.length);
+                const realm = realms[realmIndex];
+                const level = Math.floor(random() * 9) + 1;
+                
+                // 基於境界計算經驗值
+                const baseExp = (realmIndex + 1) * 1000 + (level - 1) * 500;
+                const experience = Math.floor(random() * 800) + 200;
+                const expRequired = baseExp + Math.floor(random() * 500) + 500;
+                
+                // 生成個性化統計數據
+                const cultivationCount = Math.floor(random() * 5000) + 1000;
+                const totalExperience = Math.floor(random() * 100000) + 50000;
+                const breakthroughCount = Math.floor(random() * 30) + 10;
+                const efficiency = Math.floor(random() * 25) + 75;
+                const onlineTime = Math.floor(random() * 500) + 100;
+                
+                return {
+                    playerData: {
+                        username: username,
+                        realm: realm,
+                        level: level,
+                        experience: experience,
+                        expRequired: expRequired
+                    },
+                    playerStats: {
+                        cultivationCount: cultivationCount,
+                        totalExperience: totalExperience,
+                        breakthroughCount: breakthroughCount,
+                        efficiency: efficiency,
+                        onlineTime: onlineTime,
+                        currentRealm: realm
+                    }
+                };
+            }
+            
+            // 字符串哈希函數
+            hashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // 轉換為32位整數
+                }
+                return Math.abs(hash);
+            }
+            
+            // 基於種子的隨機數生成器
+            seededRandom(seed) {
+                let current = seed;
+                return function() {
+                    current = (current * 1103515245 + 12345) & 0x7fffffff;
+                    return current / 0x7fffffff;
+                };
+            }
+            
+            // 儲存用戶數據到本地存儲
+            saveUserData() {
+                const userData = {
+                    playerData: this.playerData,
+                    playerStats: this.playerStats,
+                    lastUpdate: Date.now()
+                };
+                localStorage.setItem('cultivation_user_data', JSON.stringify(userData));
+            }
+            
+            // 從本地存儲載入用戶數據
+            loadUserData() {
+                const savedData = localStorage.getItem('cultivation_user_data');
+                if (savedData) {
+                    try {
+                        const userData = JSON.parse(savedData);
+                        
+                        // 檢查數據是否過期（7天）
+                        const now = Date.now();
+                        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                        
+                        if (now - userData.lastUpdate < sevenDays) {
+                            this.playerData = userData.playerData;
+                            this.playerStats = userData.playerStats;
+                            return true;
+                        }
+                    } catch (error) {
+                        console.error('載入用戶數據失敗:', error);
+                    }
+                }
+                return false;
+            }
+            
+            setMockData() {
+                // 嘗試載入已存儲的用戶數據
+                if (this.loadUserData()) {
+                    this.updatePlayerUI();
+                    this.updateStatsUI();
+                    this.setConnectionStatus(true);
+                    this.hideLoading();
+                    this.startMockDataUpdates();
+                    return;
+                }
+                
+                // 如果沒有儲存的數據，生成新的個性化數據
+                const userId = this.generateUniqueUserId();
+                this.setPersonalizedData(userId);
             }
 
             setupEventListeners() {
@@ -554,27 +711,78 @@
                         return;
                     }
 
-                    const response = await this.apiRequest(`/players/${username}`);
-                    
-                    if (response.success) {
-                        this.playerData = response.data;
-                        this.updatePlayerUI();
-                        this.setConnectionStatus(true);
-                        this.loadPlayerStats();
+                    if (this.useDatabase) {
+                        // 嘗試從 MongoDB 載入數據
+                        const response = await this.apiRequest(`/players/${username}`);
+                        
+                        if (response.success) {
+                            this.playerData = response.data;
+                            this.updatePlayerUI();
+                            this.setConnectionStatus(true);
+                            this.loadPlayerStats();
+                        } else {
+                            console.log('從數據庫載入失敗，創建新玩家:', response.message);
+                            // 創建新玩家
+                            await this.createNewPlayer(username);
+                        }
                     } else {
-                        console.error('載入玩家數據失敗:', response.message);
-                        this.setConnectionStatus(false);
+                        // 使用本地數據
+                        this.setMockData();
                     }
                     
                     this.hideLoading();
                 } catch (error) {
                     console.error('載入玩家數據錯誤:', error);
-                    this.setConnectionStatus(false);
+                    console.log('切換到本地模式');
+                    this.useDatabase = false;
+                    this.setMockData();
                     this.hideLoading();
                 }
             }
 
+            async createNewPlayer(username) {
+                try {
+                    const newPlayerData = {
+                        username: username,
+                        realm: '煉氣期',
+                        level: 1,
+                        experience: 0,
+                        expRequired: 100,
+                        stats: {
+                            cultivationCount: 0,
+                            totalExperience: 0,
+                            breakthroughCount: 0,
+                            efficiency: 100,
+                            onlineTime: 0,
+                            currentRealm: '煉氣期'
+                        }
+                    };
+                    
+                    const response = await this.apiRequest('/players', {
+                        method: 'POST',
+                        body: JSON.stringify(newPlayerData)
+                    });
+                    
+                    if (response.success) {
+                        this.playerData = response.data;
+                        this.playerStats = response.data.stats;
+                        this.updatePlayerUI();
+                        this.updateStatsUI();
+                        this.setConnectionStatus(true);
+                        console.log('新玩家創建成功');
+                    } else {
+                        throw new Error('創建新玩家失敗');
+                    }
+                } catch (error) {
+                    console.error('創建新玩家錯誤:', error);
+                    this.useDatabase = false;
+                    this.setMockData();
+                }
+            }
+
             async loadPlayerStats() {
+                if (!this.useDatabase) return;
+                
                 try {
                     const username = this.getUsernameFromAuth();
                     const response = await this.apiRequest(`/players/${username}/stats`);
@@ -814,9 +1022,179 @@
                 return `${minutes}分鐘`;
             }
 
+            // 模擬數據實時更新
+            startMockDataUpdates() {
+                // 每5秒模擬一次修練結果
+                setInterval(() => {
+                    if (Math.random() < 0.3) { // 30% 機率觸發修練結果
+                        this.simulateCultivationResult();
+                    }
+                }, 5000);
+                
+                // 每3秒更新統計數據
+                setInterval(() => {
+                    this.updateMockStats();
+                }, 3000);
+            }
+            
+            simulateCultivationResult() {
+                const results = [
+                    { success: true, experience: 45, critical: false },
+                    { success: true, experience: 65, critical: false },
+                    { success: true, experience: 120, critical: true },
+                    { success: true, experience: 85, critical: false },
+                    { success: false, message: '修練失敗，心境不穩' }
+                ];
+                
+                const result = results[Math.floor(Math.random() * results.length)];
+                
+                // 隨機升級事件
+                if (result.success && Math.random() < 0.05) {
+                    result.levelUp = {
+                        realm: this.playerData.realm,
+                        level: this.playerData.level + 1
+                    };
+                }
+                
+                this.showCultivationResult(result);
+                
+                // 更新玩家數據
+                if (result.success) {
+                    this.playerData.experience += result.experience;
+                    this.playerStats.totalExperience += result.experience;
+                    this.playerStats.cultivationCount++;
+                    
+                    // 檢查是否升級
+                    if (this.playerData.experience >= this.playerData.expRequired) {
+                        this.playerData.level++;
+                        this.playerData.experience = 0;
+                        this.playerData.expRequired = Math.floor(this.playerData.expRequired * 1.5);
+                        this.playerStats.breakthroughCount++;
+                        
+                        // 境界突破
+                        if (this.playerData.level > 9) {
+                            this.advanceRealm();
+                        }
+                    }
+                    
+                    this.updatePlayerUI();
+                    this.updateStatsUI();
+                    
+                    // 同步數據到數據庫
+                    this.syncToDatabase();
+                }
+            }
+            
+            updateMockStats() {
+                // 緩慢增加在線時間
+                this.playerStats.onlineTime++;
+                
+                // 隨機調整效率
+                const efficiencyChange = (Math.random() - 0.5) * 2;
+                this.playerStats.efficiency = Math.max(75, Math.min(100, this.playerStats.efficiency + efficiencyChange));
+                
+                this.updateStatsUI();
+                
+                // 同步數據到數據庫
+                this.syncToDatabase();
+            }
+            
+            advanceRealm() {
+                const realms = [
+                    '煉氣期', '築基期', '金丹期', '元嬰期', '化神期', 
+                    '練虛期', '合體期', '大乘期', '渡劫期', '大羅金仙'
+                ];
+                
+                const currentIndex = realms.indexOf(this.playerData.realm);
+                if (currentIndex >= 0 && currentIndex < realms.length - 1) {
+                    this.playerData.realm = realms[currentIndex + 1];
+                    this.playerData.level = 1;
+                    this.playerStats.currentRealm = this.playerData.realm;
+                    
+                    // 顯示突破提示
+                    this.showCultivationResult({
+                        success: true,
+                        experience: 0,
+                        critical: true,
+                        levelUp: {
+                            realm: this.playerData.realm,
+                            level: 1
+                        }
+                    });
+                }
+            }
+
+            // 同步數據到數據庫
+            async syncToDatabase() {
+                if (!this.useDatabase || !this.playerData) return;
+                
+                try {
+                    const username = this.getUsernameFromAuth();
+                    const updateData = {
+                        realm: this.playerData.realm,
+                        level: this.playerData.level,
+                        experience: this.playerData.experience,
+                        expRequired: this.playerData.expRequired,
+                        stats: this.playerStats
+                    };
+                    
+                    const response = await this.apiRequest(`/players/${username}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (response.success) {
+                        console.log('數據已同步到數據庫');
+                    } else {
+                        console.error('同步數據失敗:', response.message);
+                        // 失敗時保存到本地存儲作為備份
+                        this.saveUserData();
+                    }
+                } catch (error) {
+                    console.error('同步數據錯誤:', error);
+                    // 失敗時保存到本地存儲作為備份
+                    this.saveUserData();
+                }
+            }
+            
+            // 定期同步數據
+            startDatabaseSync() {
+                if (!this.useDatabase) return;
+                
+                // 每30秒同步一次數據
+                setInterval(() => {
+                    this.syncToDatabase();
+                }, 30000);
+            }
+            
+            // 從數據庫重新載入數據
+            async refreshFromDatabase() {
+                if (!this.useDatabase) return;
+                
+                try {
+                    const username = this.getUsernameFromAuth();
+                    const response = await this.apiRequest(`/players/${username}`);
+                    
+                    if (response.success) {
+                        this.playerData = response.data;
+                        this.playerStats = response.data.stats;
+                        this.updatePlayerUI();
+                        this.updateStatsUI();
+                        console.log('數據已從數據庫重新載入');
+                    }
+                } catch (error) {
+                    console.error('重新載入數據失敗:', error);
+                }
+            }
+
             // 清理資源
             destroy() {
                 this.stopUpdateCycle();
+                
+                // 最後一次同步數據
+                if (this.useDatabase) {
+                    this.syncToDatabase();
+                }
                 
                 if (this.twitch) {
                     this.twitch.unlisten('broadcast', () => {});
